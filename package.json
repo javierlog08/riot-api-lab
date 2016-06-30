@@ -1,0 +1,16 @@
+{
+  "name": "Riot-Api-Lab",
+  "version": "1.0.0",
+  "description": "A Riot API Test project created by javierlog08",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jsonfile": "^2.3.1",
+    "riot-api-client": "^2.0.2",
+    "underscore": "^1.8.3"
+  }
+}
