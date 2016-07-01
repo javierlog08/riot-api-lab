@@ -9,9 +9,10 @@ var matchListUrl = 'https://lan.api.pvp.net/api/lol/lan/v2.2/matchlist/by-summon
 var matchUrl = 'https://lan.api.pvp.net/api/lol/lan/v2.2/match/';
 var riotApi = require('riot-api-client')(config);
 var _ = require('underscore');
-var jsonfile = require('jsonfile')
 
-var file = 'data.json'
+var jsonfile = require('jsonfile')
+var exec = require('child_process').exec;
+var file = 'data.json';
 
 riotApi.get(matchListUrl, function callback(err, matchList){
     var data = [{}];
@@ -21,31 +22,32 @@ riotApi.get(matchListUrl, function callback(err, matchList){
         var len = matchList.matches.length;
         console.log(len);
         setTimeout(function(){
-            setInterval(function(){
-                riotApi.get(matchUrl+matchList.matches[len-1].matchId, function callback(err,matchInfo){
-                    if(matchInfo != null) {
-                        data.push(_.findWhere(matchInfo.participants,{championId:421}));
-                    }
-                    len--;
-                    if(len <= 0){
-                        jsonfile.writeFileSync(file, data)
-                    }
-                });
-            },1000);
-           /* matchList.matches.forEach(function(match){
+            var iid = setInterval(function(){
+                if(len >= 0) {
+                    var indx  = (len > 0)? len-1 :0 ;
+                    riotApi.get(matchUrl+matchList.matches[indx].matchId, function callback(err,matchInfo){
+                        if(matchInfo != null) {
+                            var tmp_match = _.findWhere(matchInfo.participants,{championId:421});
+                            data.push(tmp_match.stats);
+                        }
+                        len--;
+                        console.log("Progress -> %"+len);
+                        if(len <= 0){
+                            jsonfile.writeFile(file, data, function (err) {
+                                exec("convert2csv -i data.json -o reksai_history.csv", function (error, stdout, stderr) {
+                                    if (error !== null) {
+                                        console.log('exec error: ' + error);
+                                    }
+                                });
+                                clearInterval(iid);
+                            })
 
-                riotApi.get(matchUrl+match.matchId, function callback(err,matchInfo){
-                    if(matchInfo != null) {
-                        data.push(_.findWhere(matchInfo.participants,{championId:421}));
-                    }
-                    len--;
-                    if(len <= 0){
-                        jsonfile.writeFileSync(file, data)
-                    }
-                });
-
-            });*/
-        },1000);
+                            
+                        }
+                    });
+                }
+            },2000);
+        },1500);
 
     }
     
